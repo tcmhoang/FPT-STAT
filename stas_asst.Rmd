@@ -1,0 +1,252 @@
+---
+title: "Probability & Statistic Final Assignment"
+author:
+  - Tuan Hoang^[IS1412, tuanhmhe141540@fpt.edu.vn]
+  
+date: "03/18/2022"
+output: 
+  html_document:
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(gssr)
+```
+
+### Load data
+
+```{r load-data, message=FALSE}
+data(gss_doc)
+gss21 <- gss_get_yr(2021)
+```
+
+
+
+
+
+* * *
+
+
+## Section 1: Data
+
+*Overview*
+
+*Sampling Design*
+
+*Scope of inference*
+
+*Generalizability*
+
+*Causality*
+
+*Summary*
+
+<b>The data and further information were used in this project from the following sources:</b>
+
+General Information: [2021 Survey Data Information](http://www.cdc.gov/brfss/annual_data/annual_2013.html) 
+
+* * *
+
+## Section 2: Research questions
+
+We would like to focus on the behaviors, demographics, and opinions
+
+**Research question 1:**  
+
+Do women oftentimes feel uneasy strolling alone at night in their neighborhood?
+
+Most people often hold the common perception that the girls are more afraid of walking alone at night than the males do.
+
+We can further dive into it by splitting the data by geographical locations
+
+* Explanatory variable: `sex`
+  ```{r}
+  gss_doc %>% filter(id == "sex") %>% 
+  select(description)
+  ```
+* Response variable: `fear`
+  ```{r}
+  gss_doc %>% filter(id == "fear") %>% 
+  select(description)
+  ```
+
+
+**Research question 2:**  
+
+**Research question 3:**  
+
+
+* * *
+
+## Section 3: EDA - Exploratory data analysis
+
+**Research question 1:**
+***Do women oftentimes feel uneasy strolling alone at night in their neighborhood?***
+
+First, we need to get the data and clean to get the grasp of the data
+
+```{r load-ffear-data}
+gss21_sex <- 
+  gss21 %>% filter(!is.na(gss21$sex), is.numeric(gss21$sex)) %>% 
+  mutate_at(vars(matches("sex")) , ~ifelse(sex == 1 , "Male", "Female")) 
+
+ffear <- 
+  gss21_sex %>% filter(sex == "Female", !is.na(gss21_sex$fear), is.numeric(gss21_sex$fear)) %>%
+  mutate_at(vars(matches("fear")), ~ifelse(fear == 1, "Yes", "No"))
+
+ffear %>% group_by(sex, fear) %>% summarise(count = n())
+```
+
+What I did there is filter out the "NA" entries and convert fields to human-readable format.
+
+As depicted from the table, there are a significant amount of observations that women are comfortable strolling at night. This also indicates that most girls are all right to take a walk in dark.
+
+Let's further investigate the statement
+
+```{r plot-ffear-sample}
+ffear$fear <- as.factor(ffear$fear)
+ggplot(ffear, aes(x = fear)) +
+  geom_bar(fill = "#8FDEE1") +
+  xlab("Fear") +
+  ylab("Number of people") + 
+  ggtitle('Sample Distribution')
+```
+
+As is evident from the graph, the number of girls who are not afraid when walking at night outweighed the scared ones.
+
+
+* * * 
+
+## Section 4: Inference
+
+**Research question 1:**
+
+***Confidence Interval:***
+
+*Conditions for central limit theorem:*
+
+1. Independence Check:
+  The observations are collected from a simple random sample. Also, it consists of fewer observations than 10% of the US population, which we could safely assume to be independent.
+2. Sample size / skew check (success-failure check):
+  The sample size `n` of our dataset was 2,197. From which 1,239 success (not-afraid) cases and 958 failure (scare) cases.  
+  
+Both conditions passed, thus the distribution is nearly normal as defined by the central limit theorem.
+
+We will construct a 95% CI for the proportion of girls that are not afraid to walk alone in the evening in their locals
+
+```{r compute-ffear-ci}
+ffear_len <- length(ffear$fear)
+ffear_p_hat <- sum(ffear$fear == "No") / ffear_len
+
+ffear_conf_level <- 0.95
+ffear_perc_crit_value <- ffear_conf_level + ((1 - ffear_conf_level) / 2)
+
+ffear_zstar <- qnorm(ffear_perc_crit_value)
+
+ffear_se <- sqrt(ffear_p_hat * (1 - ffear_p_hat) / ffear_len)
+ffear_me <- ffear_zstar * ffear_se
+
+ffear_ci  <- ffear_p_hat + c(-1,1) * ffear_me
+
+
+cat(paste0("n = ", ffear_len, ", p-hat = ", round(ffear_p_hat, 4), "\n",
+ffear_conf_level, "% CI: (", round(ffear_ci[1], 4), " , ", round(ffear_ci[2], 4), ")\n"))
+
+```
+
+
+We are `r ffear_conf_level * 100`% confident that `r round(ffear_ci[1], 4)`% to `r  round(ffear_ci[2], 4)`% of all American females are ok with night strolls.
+
+***Hypothesis testing:***
+
+Let's continue the question from above:
+We have 2 hypothesizes.
+
+*H0:* Girls are terrified of walking without accompany at night in their near vicinity (p = 0.5)  
+*H1:* They walk at night in their neighborhood without hesitant (p > 0.5)  
+
+*Conditions for central limit theorem:*
+
+1. Independence Check:
+  As mentioned above, we can safely assume it independence
+
+2. Sample size / skew check (success-failure check):
+  From the data, we see that the observed success rate (p-hat) is `r ffear_p_hat` <br/>
+  The test proportion `p` used in our hypotheses will be 0.5 <br/>
+  We also had np = `r ffear_len`  * 0.5 = `r ffear_len * 0.5`
+
+Those gave us more than 10 cases for both successes and failures
+
+Because all the tests passed, the distribution is nearly normal as defined by the central limit theorem.
+
+Let's look into this.
+
+```{r compute-ffear-ht}
+ffear_null = 0.5
+ffear_zstats <- (ffear_p_hat - ffear_null) / ffear_se
+
+ffear_x_min <- ffear_p_hat 
+ffear_x_max <- Inf
+
+ffear_p_value <- pnorm(ffear_zstats, lower.tail = FALSE)
+ffear_p_val_to_print <- ifelse(round(ffear_p_value, 4) == 0, "< 0.0001", round(ffear_p_value, 4))
+
+cat(paste0("n = ", ffear_len, ", p-hat = ", round(ffear_p_hat, 4), "\n",
+           "H0: p = ", ffear_null, "\n" ,
+          "HA: p >", " ", ffear_null, "\n",
+          "z = ", round(ffear_zstats, 4), "\n",
+          "p_value = ", ffear_p_val_to_print
+          ))
+```
+
+The hypothesis test yields `r ffear_zstats`, making the p-value negligible (`r ffear_p_val_to_print`).
+
+Let's construct the null sample graph to make it more transparent
+
+```{r plot-ffear-null}
+ggplot(data.frame(x = c(ffear_null - 4 * ffear_se, ffear_null + 4 * ffear_se)), aes_string(x= 'x')) + 
+  stat_function(fun = dnorm, args = list(mean = ffear_null, sd = ffear_se), color = "#999999") +
+  annotate("rect", xmin = ffear_x_min, xmax= ffear_x_max, ymin = 0, ymax = Inf, alpha = .3, fill= "#FABAB8") + 
+  ggtitle("Null distribution") +
+  xlab("") +
+  ylab("") +
+  geom_vline(xintercept = ffear_p_hat, color ="#F57670", lwd = 1.7)
+```
+
+By observing the results, we can see that the probability of the null hypothesis is almost 0. Therefore, we reject the null hypothesis.
+
+
+* * *
+
+## Section 5: Prediction
+
+* * *
+
+## Section 6: Conlusion
+
+**Research question 1:**
+
+From our hypothesis testing results, we can accept the alternative hypothesis. That is, that females are afraid of walking alone at night in their local neighborhood.As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
+
+
+* * *
+
+## Section 7: Citations & References
+
+Healy K (2019). gssr: General Social Survey data for use in R. R package version 0.2.0, http://kjhealy.github.io/gssr. 
+
+BRFSS website:  http://gss.norc.org/ (11/01/2021)  
+
