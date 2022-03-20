@@ -42,17 +42,60 @@ gss21 <- gss_get_yr(2021)
 
 ## Section 1: Data
 
-*Overview*
+### Overview
 
-*Sampling Design*
+The General Survey (also known as GSS) has been conducted since 1972 to cater to statisticians and data scientists discovering more about public opinion trends in the US.
 
-*Scope of inference*
+### Sampling Design
 
-*Generalizability*
+The collecting data method in 2021 was implemented significant methodological changes to ensure the safety of both respondents and interview. For instances, moving from in-person to address-based sampling and online methodology.
 
-*Causality*
+Let's go through the details
 
-*Summary*
+In order to conduct the GSS, agents obtain samples of web-based and address-based survey
+<br>
+<br>
+<ul>
+<li><b>The mail-based Sample</b><br>
+<p>
+
+Used DSS - Disproportionate stratified sampling since 2006. They got addresses from strata that were based on NORC’s master sample and their charateristics such as: the the density of the household which is from the America Community Survey. Samples are taken from the north-west corner inward until quotas are met.
+
+In that design, addresses were classified into 2 kinds of stratum that either was metropolitan or rura and within it new primary sampling units (PSUs) are being used to yield addresses for surveying.
+
+
+</p>
+</li>
+<li><b>The Web-based Sample</b><br>
+<p>
+
+As an online questionnaire. In this survey, some of the questions that had the same theme were listed on the screen together as a grid so that they can answer them in one go. 
+
+Before being published, the data were weighted based on the proportions to equal the 2019 American Community Survey Census Bureau to ensure unbiased characteristics.
+
+</p>
+</li>
+</ul>
+
+### Scope of inference
+
+As mentioned above, GSS use stratified sampling design based on the NORC master sample to select a representative sample from each state residents.
+
+Thus, each state began with a single stratum to provide adequate sample sizes which is defined populations of interest but many states sample were disproportionate in their strata that correspond to sub-state or non-metropolitant regions.
+
+### Generalizability
+
+The data are collected from multiple areas. Moreover,  in each cluster group is sampled, the measure is taken at higher levels and by percentages to ensure the distribution of key variables (sex, gender, etc).
+
+Therefore, it can be generalized to the US population.
+
+### Causality
+
+Making causal conclusions based on observational data is not recommended. Observational studies are only sufficient to show correlations.
+
+### Summary
+
+The data collection is based on a stratified sampling strategy. The population is divided into groups (Region) called strata. Then a random sampling (characteristics), has been employed within each stratum.It can be generalized to the US population
 
 <b>The data and further information were used in this project from the following sources:</b>
 
@@ -73,15 +116,15 @@ Most people often hold the common perception that the girls are more afraid of w
 We can further dive into it by splitting the data by geographical locations
 
 * Explanatory variable: `sex`
-  ```{r}
+```{r}
   gss_doc %>% filter(id == "sex") %>% 
   select(description)
-  ```
+```
 * Response variable: `fear`
-  ```{r}
+```{r}
   gss_doc %>% filter(id == "fear") %>% 
   select(description)
-  ```
+```
 
 
 **Research question 2:**  
@@ -239,7 +282,7 @@ By observing the results, we can see that the probability of the null hypothesis
 
 **Research question 1:**
 
-From our hypothesis testing results, we can accept the alternative hypothesis. That is, that females are afraid of walking alone at night in their local neighborhood.As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
+From our hypothesis testing results, we can accept the alternative hypothesis. That is, that females are afraid of walking alone at night in their local neighborhood. As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
 
 
 * * *
@@ -248,5 +291,5 @@ From our hypothesis testing results, we can accept the alternative hypothesis. T
 
 Healy K (2019). gssr: General Social Survey data for use in R. R package version 0.2.0, http://kjhealy.github.io/gssr. 
 
-BRFSS website:  http://gss.norc.org/ (11/01/2021)  
+GSS website:  http://gss.norc.org/ (11/01/2021)  
 
