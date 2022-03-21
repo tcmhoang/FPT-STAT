@@ -1,20 +1,21 @@
 ---
 title: "Probability & Statistic Final Assignment"
-author:
-  - Tuan Hoang^[IS1412, tuanhmhe141540@fpt.edu.vn]
-  
+author: "Tuan Hoang^[IS1412, tuanhmhe141540@fpt.edu.vn]"
 date: "03/18/2022"
-output: 
+output:
   html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+  pdf_document: default
+editor_options:
+  markdown:
+    wrap: 72
 ---
 
 ## Setup
 
 ### Load packages
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -33,111 +34,167 @@ data(gss_doc)
 gss21 <- gss_get_yr(2021)
 ```
 
-
-
-
-
-* * *
-
+------------------------------------------------------------------------
 
 ## Section 1: Data
 
 ### Overview
 
-The General Survey (also known as GSS) has been conducted since 1972 to cater to statisticians and data scientists discovering more about public opinion trends in the US.
+The General Survey (also known as GSS) has been conducted since 1972 to
+cater to statisticians and data scientists discovering more about public
+opinion trends in the US.
 
 ### Sampling Design
 
-The collecting data method in 2021 was implemented significant methodological changes to ensure the safety of both respondents and interview. For instances, moving from in-person to address-based sampling and online methodology.
+The collecting data method in 2021 was implemented significant
+methodological changes to ensure the safety of both respondents and
+interview. For instances, moving from in-person to address-based
+sampling and online methodology.
 
 Let's go through the details
 
-In order to conduct the GSS, agents obtain samples of web-based and address-based survey
-<br>
-<br>
+In order to conduct the GSS, agents obtain samples of web-based and
+address-based survey <br> <br>
+
 <ul>
-<li><b>The mail-based Sample</b><br>
+
+<li>
+
+<b>The mail-based Sample</b><br>
+
 <p>
 
-Used DSS - Disproportionate stratified sampling since 2006. They got addresses from strata that were based on NORC’s master sample and their charateristics such as: the the density of the household which is from the America Community Survey. Samples are taken from the north-west corner inward until quotas are met.
+Used DSS - Disproportionate stratified sampling since 2006. They got
+addresses from strata that were based on NORC's master sample and their
+charateristics such as: the the density of the household which is from
+the America Community Survey. Samples are taken from the north-west
+corner inward until quotas are met.
 
-In that design, addresses were classified into 2 kinds of stratum that either was metropolitan or rura and within it new primary sampling units (PSUs) are being used to yield addresses for surveying.
-
+In that design, addresses were classified into 2 kinds of stratum that
+either was metropolitan or rura and within it new primary sampling units
+(PSUs) are being used to yield addresses for surveying.
 
 </p>
+
 </li>
-<li><b>The Web-based Sample</b><br>
+
+<li>
+
+<b>The Web-based Sample</b><br>
+
 <p>
 
-As an online questionnaire. In this survey, some of the questions that had the same theme were listed on the screen together as a grid so that they can answer them in one go. 
+As an online questionnaire. In this survey, some of the questions that
+had the same theme were listed on the screen together as a grid so that
+they can answer them in one go.
 
-Before being published, the data were weighted based on the proportions to equal the 2019 American Community Survey Census Bureau to ensure unbiased characteristics.
+Before being published, the data were weighted based on the proportions
+to equal the 2019 American Community Survey Census Bureau to ensure
+unbiased characteristics.
 
 </p>
+
 </li>
+
 </ul>
 
 ### Scope of inference
 
-As mentioned above, GSS use stratified sampling design based on the NORC master sample to select a representative sample from each state residents.
+As mentioned above, GSS use stratified sampling design based on the NORC
+master sample to select a representative sample from each state
+residents.
 
-Thus, each state began with a single stratum to provide adequate sample sizes which is defined populations of interest but many states sample were disproportionate in their strata that correspond to sub-state or non-metropolitant regions.
+Thus, each state began with a single stratum to provide adequate sample
+sizes which is defined populations of interest but many states sample
+were disproportionate in their strata that correspond to sub-state or
+non-metropolitant regions.
 
 ### Generalizability
 
-The data are collected from multiple areas. Moreover,  in each cluster group is sampled, the measure is taken at higher levels and by percentages to ensure the distribution of key variables (sex, gender, etc).
+The data are collected from multiple areas. Moreover, in each cluster
+group is sampled, the measure is taken at higher levels and by
+percentages to ensure the distribution of key variables (sex, gender,
+etc).
 
 Therefore, it can be generalized to the US population.
 
 ### Causality
 
-Making causal conclusions based on observational data is not recommended. Observational studies are only sufficient to show correlations.
+Making causal conclusions based on observational data is not
+recommended. Observational studies are only sufficient to show
+correlations.
 
 ### Summary
 
-The data collection is based on a stratified sampling strategy. The population is divided into groups (Region) called strata. Then a random sampling (characteristics), has been employed within each stratum.It can be generalized to the US population
+The data collection is based on a stratified sampling strategy. The
+population is divided into groups (Region) called strata. Then a random
+sampling (characteristics), has been employed within each stratum.It can
+be generalized to the US population
 
-<b>The data and further information were used in this project from the following sources:</b>
+<b>The data and further information were used in this project from the
+following sources:</b>
 
-General Information: [2021 Survey Data Information](http://www.cdc.gov/brfss/annual_data/annual_2013.html) 
+General Information: [2021 Survey Data
+Information](http://www.cdc.gov/brfss/annual_data/annual_2013.html)
 
-* * *
+------------------------------------------------------------------------
 
 ## Section 2: Research questions
 
 We would like to focus on the behaviors, demographics, and opinions
 
-**Research question 1:**  
+**Research question 1:**
 
-Do women oftentimes feel uneasy strolling alone at night in their neighborhood?
+Do women oftentimes feel uneasy strolling alone at night in their
+neighborhood?
 
-Most people often hold the common perception that the girls are more afraid of walking alone at night than the males do.
+Most people often hold the common perception that the girls are more
+afraid of walking alone at night than the males do.
 
-We can further dive into it by splitting the data by geographical locations
+We can further dive into it by splitting the data by geographical
+locations
 
-* Explanatory variable: `sex`
+-   Explanatory variable: `sex`
+
 ```{r}
   gss_doc %>% filter(id == "sex") %>% 
   select(description)
 ```
-* Response variable: `fear`
+
+-   Response variable: `fear`
+
 ```{r}
   gss_doc %>% filter(id == "fear") %>% 
   select(description)
 ```
 
+**Research question 2:**
 
-**Research question 2:**  
+**Research question 3:**
 
-**Research question 3:**  
+What is the relationship between the age of surveyed person and the
+hours he/she watches a day in average?
 
+-   Explanatory variable: `age`
 
-* * *
+```{r}
+  gss_doc %>% filter(id == "age") %>% 
+  select(description)
+```
+
+-   Response variable: `tvhours`
+
+```{r}
+  gss_doc %>% filter(id == "tvhours") %>% 
+  select(description)
+```
+
+------------------------------------------------------------------------
 
 ## Section 3: EDA - Exploratory data analysis
 
-**Research question 1:**
-***Do women oftentimes feel uneasy strolling alone at night in their neighborhood?***
+**Research question 1:** ***Do women oftentimes feel uneasy strolling
+alone at night in their neighborhood?***
 
 First, we need to get the data and clean to get the grasp of the data
 
@@ -153,9 +210,12 @@ ffear <-
 ffear %>% group_by(sex, fear) %>% summarise(count = n())
 ```
 
-What I did there is filter out the "NA" entries and convert fields to human-readable format.
+What I did there is filter out the "NA" entries and convert fields to
+human-readable format.
 
-As depicted from the table, there are a significant amount of observations that women are comfortable strolling at night. This also indicates that most girls are all right to take a walk in dark.
+As depicted from the table, there are a significant amount of
+observations that women are comfortable strolling at night. This also
+indicates that most girls are all right to take a walk in dark.
 
 Let's further investigate the statement
 
@@ -168,10 +228,35 @@ ggplot(ffear, aes(x = fear)) +
   ggtitle('Sample Distribution')
 ```
 
-As is evident from the graph, the number of girls who are not afraid when walking at night outweighed the scared ones.
+As is evident from the graph, the number of girls who are not afraid
+when walking at night outweighed the scared ones.
 
+**Research question 3:** ***What is the relationship between the age of
+surveyed person and the hours he/she watches a day in average?***
 
-* * * 
+First, we need to get the data and clean to get the grasp of the data
+
+```{r load-ftvhours-data}
+gss21_age <- 
+  gss21 %>% filter(!is.na(gss21$age), is.numeric(gss21$age)) %>% 
+  mutate_at(vars(matches("age")) , ~ifelse(is.na(age) , -1, age))
+
+ftvhours <- 
+  gss21_age %>% filter(!is.na(gss21_age$tvhours), is.numeric(gss21_age$tvhours)) %>%
+  mutate_at(vars(matches("tvhours")) , ~ifelse(is.na(tvhours) , -1, tvhours))
+
+ftvhours %>% group_by(age, tvhours) %>% summarise(count = n())
+```
+
+```{r plot-ftvhours-sample}
+ggplot(ftvhours, aes(x = age, y = tvhours)) +
+  geom_point(fill = "#8FDEE1") +
+  xlab("Age") +
+  ylab("tv hours") + 
+  ggtitle('Sample Distribution')
+```
+
+------------------------------------------------------------------------
 
 ## Section 4: Inference
 
@@ -181,14 +266,18 @@ As is evident from the graph, the number of girls who are not afraid when walkin
 
 *Conditions for central limit theorem:*
 
-1. Independence Check:
-  The observations are collected from a simple random sample. Also, it consists of fewer observations than 10% of the US population, which we could safely assume to be independent.
-2. Sample size / skew check (success-failure check):
-  The sample size `n` of our dataset was 2,197. From which 1,239 success (not-afraid) cases and 958 failure (scare) cases.  
-  
-Both conditions passed, thus the distribution is nearly normal as defined by the central limit theorem.
+1.  Independence Check: The observations are collected from a simple
+    random sample. Also, it consists of fewer observations than 10% of
+    the US population, which we could safely assume to be independent.
+2.  Sample size / skew check (success-failure check): The sample size
+    `n` of our dataset was 2,197. From which 1,239 success (not-afraid)
+    cases and 958 failure (scare) cases.
 
-We will construct a 95% CI for the proportion of girls that are not afraid to walk alone in the evening in their locals
+Both conditions passed, thus the distribution is nearly normal as
+defined by the central limit theorem.
+
+We will construct a 95% CI for the proportion of girls that are not
+afraid to walk alone in the evening in their locals
 
 ```{r compute-ffear-ci}
 ffear_len <- length(ffear$fear)
@@ -210,30 +299,33 @@ ffear_conf_level, "% CI: (", round(ffear_ci[1], 4), " , ", round(ffear_ci[2], 4)
 
 ```
 
-
-We are `r ffear_conf_level * 100`% confident that `r round(ffear_ci[1], 4)`% to `r  round(ffear_ci[2], 4)`% of all American females are ok with night strolls.
+We are `r ffear_conf_level * 100`% confident that
+`r round(ffear_ci[1], 4)`% to `r  round(ffear_ci[2], 4)`% of all
+American females are ok with night strolls.
 
 ***Hypothesis testing:***
 
-Let's continue the question from above:
-We have 2 hypothesizes.
+Let's continue the question from above: We have 2 hypothesizes.
 
-*H0:* Girls are terrified of walking without accompany at night in their near vicinity (p = 0.5)  
-*H1:* They walk at night in their neighborhood without hesitant (p > 0.5)  
+*H0:* Girls are terrified of walking without accompany at night in their
+near vicinity (p = 0.5)\
+*H1:* They walk at night in their neighborhood without hesitant (p \>
+0.5)
 
 *Conditions for central limit theorem:*
 
-1. Independence Check:
-  As mentioned above, we can safely assume it independence
+1.  Independence Check: As mentioned above, we can safely assume it
+    independence
 
-2. Sample size / skew check (success-failure check):
-  From the data, we see that the observed success rate (p-hat) is `r ffear_p_hat` <br/>
-  The test proportion `p` used in our hypotheses will be 0.5 <br/>
-  We also had np = `r ffear_len`  * 0.5 = `r ffear_len * 0.5`
+2.  Sample size / skew check (success-failure check): From the data, we
+    see that the observed success rate (p-hat) is `r ffear_p_hat` <br/>
+    The test proportion `p` used in our hypotheses will be 0.5 <br/> We
+    also had np = `r ffear_len` \* 0.5 = `r ffear_len * 0.5`
 
 Those gave us more than 10 cases for both successes and failures
 
-Because all the tests passed, the distribution is nearly normal as defined by the central limit theorem.
+Because all the tests passed, the distribution is nearly normal as
+defined by the central limit theorem.
 
 Let's look into this.
 
@@ -255,7 +347,8 @@ cat(paste0("n = ", ffear_len, ", p-hat = ", round(ffear_p_hat, 4), "\n",
           ))
 ```
 
-The hypothesis test yields `r ffear_zstats`, making the p-value negligible (`r ffear_p_val_to_print`).
+The hypothesis test yields `r ffear_zstats`, making the p-value
+negligible (`r ffear_p_val_to_print`).
 
 Let's construct the null sample graph to make it more transparent
 
@@ -269,27 +362,56 @@ ggplot(data.frame(x = c(ffear_null - 4 * ffear_se, ffear_null + 4 * ffear_se)), 
   geom_vline(xintercept = ffear_p_hat, color ="#F57670", lwd = 1.7)
 ```
 
-By observing the results, we can see that the probability of the null hypothesis is almost 0. Therefore, we reject the null hypothesis.
+By observing the results, we can see that the probability of the null
+hypothesis is almost 0. Therefore, we reject the null hypothesis.
 
-
-* * *
+------------------------------------------------------------------------
 
 ## Section 5: Prediction
 
-* * *
+**Research question 3:** ***What is the relationship between the age of
+surveyed person and the hours he/she watches a day in average?***
+
+```{r linear-regression}
+lmpredict = lm(ftvhours$tvhours~ftvhours$age)
+summary(lmpredict)
+```
+
+```{r predict-plot}
+
+predict_df <- data.frame(tvhours_pred = predict(lmpredict, ftvhours), age=ftvhours$age)
+
+ggplot(ftvhours, aes(x = age, y = tvhours)) +
+  geom_point(fill = "#8FDEE1") +
+  geom_smooth(method = lm, color="red")
+  xlab("Age") +
+  ylab("tv hours") + 
+  ggtitle('Sample Distribution')
+```
+
+------------------------------------------------------------------------
 
 ## Section 6: Conlusion
 
 **Research question 1:**
 
-From our hypothesis testing results, we can accept the alternative hypothesis. That is, that females are afraid of walking alone at night in their local neighborhood. As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
+From our hypothesis testing results, we can accept the alternative
+hypothesis. That is, that females are afraid of walking alone at night
+in their local neighborhood. As mentioned previously, further research
+could be done to analyze this response by geographical location to see
+if this result varies across different regions in America.
 
+**Research question 3:**
 
-* * *
+By using Linear Regression, we can get the relationship between *the age
+of surveyed person and the hours he/she watches a day in average is a
+line by [tvhours] = 0.035377 \* [age] + 1.631708*
+
+------------------------------------------------------------------------
 
 ## Section 7: Citations & References
 
-Healy K (2019). gssr: General Social Survey data for use in R. R package version 0.2.0, http://kjhealy.github.io/gssr. 
+Healy K (2019). gssr: General Social Survey data for use in R. R package
+version 0.2.0, <http://kjhealy.github.io/gssr>.
 
-GSS website:  http://gss.norc.org/ (11/01/2021)  
-
+GSS website: <http://gss.norc.org/> (11/01/2021)
