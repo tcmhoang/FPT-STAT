@@ -9,6 +9,9 @@ output:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+editor_options:
+  markdown:
+    wrap: 72
 ---
 
 ## Setup
@@ -23,6 +26,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load-packages, message = FALSE}
 library(ggplot2)
 library(dplyr)
+library(gridExtra)
 library(gssr)
 ```
 
@@ -99,7 +103,8 @@ The data collection is based on a stratified sampling strategy. The population i
 
 <b>The data and further information were used in this project from the following sources:</b>
 
-General Information: [2021 Survey Data Information](http://www.cdc.gov/brfss/annual_data/annual_2013.html) 
+General Information: [2021 Survey Data
+Information](http://gss.norc.org/)
 
 * * *
 
@@ -127,12 +132,47 @@ We can further dive into it by splitting the data by geographical locations
 ```
 
 
-**Research question 2:**  
+Do women or men feel more comfortable when strolling alone at night in their
+neighborhood?
 
-**Research question 3:**  
 
+-   Explanatory variable: `sex`
 
-* * *
+```{r}
+  gss_doc %>% filter(id == "sex") %>% 
+  select(description)
+```
+
+-   Response variable: `fear`
+
+```{r}
+  gss_doc %>% filter(id == "fear") %>% 
+  select(description)
+```
+
+**Research question 3:**
+
+Can we predict how much time users spend using email based on the internet hours and age?
+
+-   Explanatory variable: `age` and `wwhr`
+
+```{r}
+  gss_doc %>% filter(id == "age") %>% 
+  select(description)
+
+  gss_doc %>% filter(id == "wwwhr") %>% 
+  select(description)
+    
+```
+
+-   Response variable: `emailhr`
+
+```{r}
+  gss_doc %>% filter(id == "emailhr") %>% 
+  select(description)
+```
+
+------------------------------------------------------------------------
 
 ## Section 3: EDA - Exploratory data analysis
 
@@ -168,10 +208,96 @@ ggplot(ffear, aes(x = fear)) +
   ggtitle('Sample Distribution')
 ```
 
-As is evident from the graph, the number of girls who are not afraid when walking at night outweighed the scared ones.
+As is evident from the graph, the number of girls who are not afraid
+when walking at night outweighed the scared ones.
+
+**Research question 2:** 
+
+```{r load-mfear-data}
+fear <-  gss21_sex %>% filter(!is.na(gss21_sex$fear), is.numeric(gss21_sex$fear)) %>%
+  mutate_at(vars(matches("fear")), ~ifelse(fear == 1, "Yes", "No"))
+
+fear$fear <- as.factor(fear$fear)
+fear$sex <- as.factor(fear$sex)
+
+mfear <- 
+  fear %>% filter(sex == "Male")
+
+fear %>% group_by(sex, fear) %>% summarise(count = n())
+```
+
+```{r plot-fear-sample}
+
+ggplot(fear, aes(x=fear, fill = fear)) +
+  geom_bar(position="dodge") +
+  facet_wrap( ~ sex, ncol=2) +
+  xlab("Fear") +
+  ylab("Number of people") + 
+  ggtitle('Sample Distribution')
+```
+
+**Research question 3:** 
+
+```{r summary-q3-data}
+gss_q3 <- 
+  gss21 %>% filter(!is.na(gss21$age), is.numeric(gss21$age), !is.na(gss21$wwwhr), is.numeric(gss21$wwwhr), !is.na(gss21$emailhr), is.numeric(gss21$emailhr), ) %>% 
+  mutate(age_grp = case_when(
+    age <= 30 ~ 'Adult ',
+    age <= 60 ~ 'Middle Age',
+    age > 60 ~ 'Elder'
+  ))
+
+www_Q1 <- quantile(gss_q3$wwwhr, .25)
+www_Q3 <- quantile(gss_q3$wwwhr, .75)
+www_IQR <- IQR(gss_q3$wwwhr)
+
+em_Q1 <- quantile(gss_q3$emailhr, .25)
+em_Q3 <- quantile(gss_q3$emailhr, .75)
+em_IQR <- IQR(gss_q3$emailhr)
+
+gss_q3 <- gss_q3 %>% filter((gss_q3$wwwhr > (www_Q1 - 1.5*www_IQR) & gss_q3$wwwhr < (www_Q1 + 1.5*www_IQR)), 
+                            (gss_q3$emailhr > (em_Q1 - 1.5*em_IQR) & gss_q3$emailhr < (em_Q1 + 1.5*em_IQR))
+                            )
+
+gss_q3$age_grp <- as.factor(gss_q3$age_grp)
+
+summary(gss_q3[c('age_grp', 'wwwhr', 'emailhr')])
+```
 
 
-* * * 
+```{r plot_box}
+ggplot(gss_q3, aes(x = age_grp, y = wwwhr)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_hline(yintercept = median(gss_q3$wwwhr))
+
+```
+
+```{r histogram}
+q3h_www <- ggplot(gss_q3, aes(x = wwwhr)) +
+  geom_histogram(binwidth = 1) +
+  labs("Internet Time")
+q3h_email <- ggplot(gss_q3, aes(x = emailhr)) +
+  geom_histogram(binwidth = 1)+
+  labs("Email Time")
+
+grid.arrange(q3h_www, q3h_email, nrow = 2)
+```
+
+
+```{r qualify_cc}
+gss_q3 %>%
+  summarise(cor(wwwhr, emailhr))
+```
+
+``` {r }
+ggplot(data = gss_q3, aes(x = wwwhr, y = emailhr )) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)
+```
+
+
+
+
+------------------------------------------------------------------------
 
 ## Section 4: Inference
 
@@ -249,7 +375,7 @@ ffear_p_val_to_print <- ifelse(round(ffear_p_value, 4) == 0, "< 0.0001", round(f
 
 cat(paste0("n = ", ffear_len, ", p-hat = ", round(ffear_p_hat, 4), "\n",
            "H0: p = ", ffear_null, "\n" ,
-          "HA: p >", " ", ffear_null, "\n",
+          "H1: p >", " ", ffear_null, "\n",
           "z = ", round(ffear_zstats, 4), "\n",
           "p_value = ", ffear_p_val_to_print
           ))
@@ -271,19 +397,137 @@ ggplot(data.frame(x = c(ffear_null - 4 * ffear_se, ffear_null + 4 * ffear_se)), 
 
 By observing the results, we can see that the probability of the null hypothesis is almost 0. Therefore, we reject the null hypothesis.
 
+**Research question 2:**
 
-* * *
+***Confidence Interval:***
+*Conditions for central limit theorem:*
+
+```{r compute-fear-ci}
+mfear_len = length(mfear$fear)
+mfear_p_hat <- sum(mfear$fear == "No") / mfear_len
+
+fear_p_hat_diff <- mfear_p_hat - ffear_p_hat
+
+fear_conf_level <- 0.95
+fear_perc_crit_value <- fear_conf_level + ((1 - fear_conf_level) / 2)
+
+fear_zstar <- qnorm(fear_perc_crit_value)
+
+fear_se <- sqrt((mfear_p_hat * (1 - mfear_p_hat) / mfear_len) + (ffear_p_hat * (1 - ffear_p_hat) / ffear_len))
+
+fear_me <- fear_zstar * fear_se
+
+fear_ci  <- fear_p_hat_diff + c(-1,1) * fear_me
+
+
+cat(paste0("Response variable: categorical (", length(levels(fear$fear)), " levels, success: ", "No", ")\n"))
+cat(paste0("Explanatory variable: categorical (", length(levels(fear$sex)), " levels) \n"))
+
+fear_grp1 = "Male";
+
+fear_grp2 = "Female";
+
+cat(paste0("n_", fear_grp1, " = ", mfear_len, ", p_hat_", fear_grp1, " = ", round(mfear_p_hat, 4), "\n",
+    "n_", fear_grp2, " = ", ffear_len, ", p_hat_", fear_grp2, " = ", round(ffear_p_hat, 4), "\n",
+    fear_conf_level, "% CI (", fear_grp1 ," - ", fear_grp2,"): (", round(fear_ci[1], 4), " , ", round(fear_ci[2], 4), ")\n"))
+
+```
+
+```{r}
+
+ggplot(data = fear, aes(x = fear, fill = sex), environment = environment()) + 
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("#1FBEC3", "#8FDEE1")) + 
+  xlab("Fear") + 
+  ylab("") + 
+  ggtitle("Sample Distribution") +
+  guides(fill = guide_legend(title = "Sex"))
+```
+
+***Hypothesis testing:***
+*Conditions for central limit theorem:*
+
+```{r compute-fear-ht}
+fear_null = 0.2
+fear_zstats <- (fear_p_hat_diff - fear_null) / fear_se
+
+
+fear_suc_tot <- sum(ffear$fear == "No") + sum(mfear$fear == "No")
+fear_n_tot <- length(fear$fear)
+
+fear_p_pool <- fear_suc_tot / fear_n_tot
+
+
+fear_x_min <- if(fear_p_hat_diff >= fear_null) c(fear_null - (fear_p_hat_diff - fear_null), fear_p_hat_diff) else c(fear_p_hat_diff, fear_null + (fear_null - fear_p_hat_diff))
+
+fear_x_max <- c(-Inf, Inf)
+
+
+
+fear_p_value <- 2 * pnorm(abs(fear_zstats), lower.tail = FALSE)
+fear_p_val_print <- ifelse(round(fear_p_value, 4) == 0, "< 0.0001", round(fear_p_value, 4))
+
+cat(paste0("H0: p_", fear_grp1, " =  p_", fear_grp2, "\n"),
+    "H1: p_", fear_grp1, " ", "!=", " p_", fear_grp2, "\n",
+    "z = ", round(fear_zstats, 4), "\n",
+    "p_value = ", fear_p_val_print)
+
+```
+
+```{r plot-fear-null}
+ggplot(data.frame(x = c(fear_null - 4 * fear_se, fear_null + 4 * fear_se))) + 
+  stat_function(fun = dnorm, args = list(mean = fear_null, sd = fear_se), color = "#999999") + 
+  annotate("rect", xmin = fear_x_min, xmax = fear_x_max, ymin = 0, ymax = Inf, 
+             alpha = 0.3, fill = "#FABAB8") +
+  ggtitle("Null Distribution") +
+  xlab("") +
+  ylab("") +
+  geom_vline(xintercept = fear_p_hat_diff, color = "#F57670", lwd = 1.5)
+
+```
+
+------------------------------------------------------------------------
 
 ## Section 5: Prediction
 
-* * *
+**Research question 3:** 
+
+``` {r}
+m1 <- lm(wwwhr ~ emailhr + age_grp , data = gss_q3)
+summary(m1)$adj.r.squared
+
+m2 <- lm(wwwhr ~ emailhr , data = gss_q3)
+summary(m2)$adj.r.squared
+
+```
+Both model had
+R-square ~ 0 => Weak correlation => Cannot use this model to lm to predict
+
+The best model has analysis of variance
+
+```{r}
+anova(m1)
+```
+
+Cannot conduct any prediction
+
+
+------------------------------------------------------------------------
 
 ## Section 6: Conlusion
 
 **Research question 1:**
 
-From our hypothesis testing results, we can accept the alternative hypothesis. That is, that females are afraid of walking alone at night in their local neighborhood. As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
+From our hypothesis testing results, we can accept the alternative
+hypothesis. That is, that females are afraid of walking alone at night
+in their local neighborhood. As mentioned previously, further research
+could be done to analyze this response by geographical location to see
+if this result varies across different regions in America.
 
+
+
+**Research question 3:**
+Cannot conlude
 
 * * *
 
