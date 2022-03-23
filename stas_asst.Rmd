@@ -1,7 +1,11 @@
 ---
 title: "Probability & Statistic Final Assignment"
 author:
-  - Tuan Hoang^[IS1412, tuanhmhe141540@fpt.edu.vn]
+  - Tuan Hoang, HE141540
+  - Lương Văn Hải, HE141667
+  - Lương Thế Hải, HE140512
+  - Hoàng Đức Hùng, HE140928
+  - Vũ Thế Long, HE141751
   
 date: "03/18/2022"
 output: 
@@ -87,13 +91,13 @@ As mentioned above, GSS use stratified sampling design based on the NORC master 
 
 Thus, each state began with a single stratum to provide adequate sample sizes which is defined populations of interest but many states sample were disproportionate in their strata that correspond to sub-state or non-metropolitant regions.
 
-### Generalizability
+#### Generalizability
 
 The data are collected from multiple areas. Moreover,  in each cluster group is sampled, the measure is taken at higher levels and by percentages to ensure the distribution of key variables (sex, gender, etc).
 
 Therefore, it can be generalized to the US population.
 
-### Causality
+#### Causality
 
 Making causal conclusions based on observational data is not recommended. Observational studies are only sufficient to show correlations.
 
@@ -131,6 +135,7 @@ We can further dive into it by splitting the data by geographical locations
   select(description)
 ```
 
+**Research question 2:**  
 
 Do women or men feel more comfortable when strolling alone at night in their
 neighborhood?
@@ -213,6 +218,11 @@ when walking at night outweighed the scared ones.
 
 **Research question 2:** 
 
+***Do women or men feel more comfortable when strolling alone at night in their
+neighborhood?***
+
+In the above we have data about female, in this part we need to get more data of male about whether they feel comfortable when strolling alone at night in their neighborhood?
+
 ```{r load-mfear-data}
 fear <-  gss21_sex %>% filter(!is.na(gss21_sex$fear), is.numeric(gss21_sex$fear)) %>%
   mutate_at(vars(matches("fear")), ~ifelse(fear == 1, "Yes", "No"))
@@ -226,6 +236,9 @@ mfear <-
 fear %>% group_by(sex, fear) %>% summarise(count = n())
 ```
 
+Below is a chart showing the above data
+
+
 ```{r plot-fear-sample}
 
 ggplot(fear, aes(x=fear, fill = fear)) +
@@ -236,7 +249,13 @@ ggplot(fear, aes(x=fear, fill = fear)) +
   ggtitle('Sample Distribution')
 ```
 
+From the graph we can see that the number of people who feel comfortable walking at night in their
+neighborhood is in the majority of both men and women.
+
+
 **Research question 3:** 
+
+Firstly, Let's filter out outliners from the data using IQR technique
 
 ```{r summary-q3-data}
 gss_q3 <- 
@@ -273,6 +292,11 @@ ggplot(gss_q3, aes(x = age_grp, y = wwwhr)) +
 
 ```
 
+As what we see on the plot, the time adults spend time on surfing the
+internet is much longer than other 2 age groups and they are also using
+email much more longer than the other ones and people in Elder age group
+spend time on the internet and email least.
+
 ```{r histogram}
 q3h_www <- ggplot(gss_q3, aes(x = wwwhr)) +
   geom_histogram(binwidth = 1) +
@@ -284,17 +308,22 @@ q3h_email <- ggplot(gss_q3, aes(x = emailhr)) +
 grid.arrange(q3h_www, q3h_email, nrow = 2)
 ```
 
+The plot shows to us that most of the people who did this survey spend
+less than 10 hours a week for the internet and less than 6 hours a week
+for email
 
 ```{r qualify_cc}
 gss_q3 %>%
   summarise(cor(wwwhr, emailhr))
 ```
 
+The scope value of 2 variables was almost zero, we will look into this by representing it in scatter graph.
 ``` {r }
 ggplot(data = gss_q3, aes(x = wwwhr, y = emailhr )) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)
 ```
 
-
+Here is the regression line for predicting the time people spend time
+for email by the time they spend for internet
 
 
 ------------------------------------------------------------------------
@@ -402,6 +431,15 @@ By observing the results, we can see that the probability of the null hypothesis
 ***Confidence Interval:***
 *Conditions for central limit theorem:*
 
+Here we test with two probabilities p_hat_Male and p_hat_Female
+with `ffear_p_hat` the probability (success)(not afraid) with the female gender(p^2)(calculated above)<br>
+and `mfear_p_hat` probability (success)(not afraid) for male gender(p^1)
+estimate for difference`fear_p_hat_diff` (p^)
+
+
+We will construct a 95% CI for the proportion of women and men that are not afraid to walk alone in the evening in their locals
+
+
 ```{r compute-fear-ci}
 mfear_len = length(mfear$fear)
 mfear_p_hat <- sum(mfear$fear == "No") / mfear_len
@@ -433,6 +471,10 @@ cat(paste0("n_", fear_grp1, " = ", mfear_len, ", p_hat_", fear_grp1, " = ", roun
 
 ```
 
+We are `r fear_conf_level * 100`% confident that `r round(fear_ci[1], 4)`% to `r  round(fear_ci[2], 4)`% of all American females and males are ok with night strolls.
+
+The graph clearly shows the probability of being afraid and not afraid of the two sexes
+
 ```{r}
 
 ggplot(data = fear, aes(x = fear, fill = sex), environment = environment()) + 
@@ -445,7 +487,28 @@ ggplot(data = fear, aes(x = fear, fill = sex), environment = environment()) +
 ```
 
 ***Hypothesis testing:***
+
+Let's continue the question from above:
+We have 2 hypothesizes.
+
+*H0:* Percentage of girls and boys who are afraid to walk unaccompanied at night in their vicinity is the same (p_Male = p_Female)  
+
+*H1:* The proportion of girls and boys who are afraid to walk unaccompanied at night in their vicinity is not the same ( p_ Male != p_ Female )  
+
 *Conditions for central limit theorem:*
+
+1. Independence Check:
+  As mentioned above, we can safely assume it independence
+
+2. Sample size / skew check (success-failure check):
+  From the data, we see that the observed success rate (p_hat_diff) is `r fear_p_hat_diff` <br/>
+  The test proportion `p` used in our hypotheses will be 0.5 <br/>
+
+Those gave us more than 10 cases for both successes and failures
+
+Because all the tests passed, the distribution is nearly normal as defined by the central limit theorem.
+
+Let's look into this.
 
 ```{r compute-fear-ht}
 fear_null = 0.2
@@ -474,6 +537,10 @@ cat(paste0("H0: p_", fear_grp1, " =  p_", fear_grp2, "\n"),
 
 ```
 
+From the results we see that z = -0.2712 is not in the specified range. So we reject H0, accept H1
+
+See the chart below for more details
+
 ```{r plot-fear-null}
 ggplot(data.frame(x = c(fear_null - 4 * fear_se, fear_null + 4 * fear_se))) + 
   stat_function(fun = dnorm, args = list(mean = fear_null, sd = fear_se), color = "#999999") + 
@@ -492,6 +559,9 @@ ggplot(data.frame(x = c(fear_null - 4 * fear_se, fear_null + 4 * fear_se))) +
 
 **Research question 3:** 
 
+Can we predict how much time users spend using
+email based on the internet hours and age?
+
 ``` {r}
 m1 <- lm(wwwhr ~ emailhr + age_grp , data = gss_q3)
 summary(m1)$adj.r.squared
@@ -500,16 +570,15 @@ m2 <- lm(wwwhr ~ emailhr , data = gss_q3)
 summary(m2)$adj.r.squared
 
 ```
-Both model had
-R-square ~ 0 => Weak correlation => Cannot use this model to lm to predict
 
-The best model has analysis of variance
+Both model had
+R-square ~ 0. Thus, two variables has a weak correlation. Therefore, we cannot use this model to lm to predict
+
+The best model has analysis of variance such as:
 
 ```{r}
 anova(m1)
 ```
-
-Cannot conduct any prediction
 
 
 ------------------------------------------------------------------------
@@ -525,9 +594,16 @@ could be done to analyze this response by geographical location to see
 if this result varies across different regions in America.
 
 
+**Research question 2:**
+
+From our hypothesis testing results, we can accept the alternative hypothesis. The proportion of girls and boys who are afraid to walk unaccompanied at night in their vicinity is not the same . <br>
+
+As mentioned previously, further research could be done to analyze this response by geographical location to see if this result varies across different regions in America.
+
 
 **Research question 3:**
-Cannot conlude
+
+We cannot draw any conclusion from the model.
 
 * * *
 
